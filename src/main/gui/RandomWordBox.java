@@ -64,6 +64,7 @@ public class RandomWordBox {
 			if (index >= generatedText.length()) {
 				String nextWord = WordGenerator.instance().getWord(curWord = WordGenerator.instance().getNextWord(curWord));
 				if (capitalize) nextWord = Character.toUpperCase(nextWord.charAt(0)) + nextWord.substring(1);
+				else if (nextWord.equals("i")) nextWord = "I";
 				capitalize = nextWord.equals(".");
 				generatedText.append(((!nextWord.equals(".") && !nextWord.equals(",") && generatedText.length() != 0) ? " " : "") + nextWord);
 			}

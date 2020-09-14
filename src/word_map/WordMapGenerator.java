@@ -16,11 +16,18 @@ import java.util.Scanner;
 
 public class WordMapGenerator {
 	
+	private static long startTime, endTime;
+	
+	
 	public static void main(String[] args) {
-		String[] inputFiles = {"english_essay.txt", "evolution.txt", "aha.txt", "bible_mlk.txt", "decartes.txt"};
+		String[] inputFiles = {"the_bible.txt"};
 		WordMapGenerator mapGen = new WordMapGenerator("c:/users/kanan/desktop/wm/word_map", inputFiles, "c:/users/kanan/desktop/wm/inputs");
+		startTime = System.currentTimeMillis();
 		mapGen.generatePartialFiles();
 		mapGen.generateCondensedFile();
+		endTime = System.currentTimeMillis();
+		
+		System.out.printf("\nTotal Elapsed Time: %.2fs", (endTime - startTime) / 1000.f);
 	}
 	
 	
@@ -55,6 +62,7 @@ public class WordMapGenerator {
 	private static String cleanFile(String input) {
 		String cleaned = input.replaceFirst("[.]", "_clean.");
 			
+		System.out.printf("Cleaning input file: %s\n", input);
 		try {
 			FileInputStream fis = new FileInputStream(input);
 			FileOutputStream fos = new FileOutputStream(cleaned);
@@ -95,6 +103,7 @@ public class WordMapGenerator {
 			e.printStackTrace();
 			return null;
 		}
+		System.out.println("Cleaning complete.");
 		
 		return cleaned;
 	}
@@ -104,10 +113,12 @@ public class WordMapGenerator {
 		Files.deleteIfExists(combined);
 		makeFile(combined);
 		
+		System.out.println("Combining inputs...");
 		for (int i = 0; i < inputFiles.length; ++i) {
 			byte[] bytes = Files.readAllBytes(Paths.get(inputDirectory, inputFiles[i]));
 			Files.write(combined, bytes, StandardOpenOption.APPEND);
 		}
+		System.out.println("Combination complete.");
 		
 		return cleanFile(combined.toString());
 	}
@@ -169,13 +180,25 @@ public class WordMapGenerator {
 		
 		String curWord = null, lastWord = null;
 		Path lastFile = null;
+		int bytesRead = 0, totalBytes = (int)new File(file).length();
+		float percentage = 0.05f, percentageIncrement = 0.05f;
 		int extra = 1;
 		
 		makeFile(Paths.get(subDir.toString(), 0 + "_._"));
 		wordList.put(".", 0); // make sure the period is first so we can efficiently find a word to start sentences when using this data
+		System.out.println("Generating partial files...");
+		long startTime = System.currentTimeMillis();
 		while (reader.hasNext() || extra-- > 0) { // using this hacky extra-- trick to get one more iteration after reader.hasNext() is false (ensures the last word in the input file is accounted for)
-			if (reader.hasNext()) curWord = reader.next().toLowerCase().replaceAll("[^a-zA-Z.,']", "");
+			if (reader.hasNext()) {
+				bytesRead += (curWord = reader.next()).length() + 1;
+				curWord = curWord.toLowerCase().replaceAll("[^a-zA-Z.,']", "");
+			}
 			else lastWord = null;
+			
+			if ((float)bytesRead / totalBytes >= percentage) {
+				System.out.printf("%.2f [%.2fmin] complete...", (float)bytesRead / totalBytes, (startTime - System.currentTimeMillis()) / 6000.f);
+				percentage += percentageIncrement;
+			}
 			
 			if (lastWord != null) {
 				lastFile = Paths.get(subDir.toString(), wordList.get(lastWord) + "_" + lastWord + "_");
@@ -190,6 +213,7 @@ public class WordMapGenerator {
 			}
 		}
 		if (wordList.size() > 1) writeInt(Paths.get(subDir.toString(), 0 + "_._"), 1); // make sure first word in the document acts like it came after a period
+		System.out.println("Generation complete.");
 		
 		
 		reader.close();
@@ -206,6 +230,7 @@ public class WordMapGenerator {
 			e.printStackTrace();
 		}
 		
+		System.out.println("Generating condensed file...");
 		File directory = subDir.toFile();
 		File[] files = directory.listFiles();
 		Arrays.parallelSort(files, new PartialFileComparator()); // want to make sure that we go in ascending order of id values
@@ -284,6 +309,42 @@ public class WordMapGenerator {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		System.out.println("Generation complete.");
+	}
+	
+	
+	public void mergePartials(String sourceFile, String destFile) {
+		Path sourcePath = Paths.get(subDir.toString(), sourceFile);
+		Path destPath = Paths.get(subDir.toString(), destFile);
+		if (Files.notExists(sourcePath) || Files.notExists(destPath)) {
+			System.out.println("Couldn't merge partials; One or more of the files doesn't exist.");
+			return;
+		}
+		
+		Scanner reader = null;
+		try {
+			reader = new Scanner(sourcePath.toFile());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		if (reader != null) {
+			int token;
+			while (reader.hasNextInt()) {
+				token = reader.nextInt();
+				if (!fileContains(destPath, token)) {
+					writeInt(destPath, token);
+				}
+			}
+			reader.close();
+		}
+		
+		try {
+			Files.delete(sourcePath);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }
