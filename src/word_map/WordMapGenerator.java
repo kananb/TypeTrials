@@ -71,6 +71,7 @@ public class WordMapGenerator {
 			if (lastChar != '\'') fos.write(lastChar);
 			while ((curChar = fis.read()) != -1) {
 				if (curChar == '_') continue;
+				if (Character.isAlphabetic(curChar) && Character.isDigit(lastChar)) continue;
 				
 				if (curChar == '\'') {
 					if (lastChar == ' ' || lastChar == ',' || lastChar == '.') curChar = lastChar;
@@ -181,7 +182,7 @@ public class WordMapGenerator {
 		String curWord = null, lastWord = null;
 		Path lastFile = null;
 		int bytesRead = 0, totalBytes = (int)new File(file).length();
-		float percentage = 0.05f, percentageIncrement = 0.05f;
+		float percentage = 0.025f, percentageIncrement = percentage;
 		int extra = 1;
 		
 		makeFile(Paths.get(subDir.toString(), 0 + "_._"));
@@ -196,7 +197,7 @@ public class WordMapGenerator {
 			else lastWord = null;
 			
 			if ((float)bytesRead / totalBytes >= percentage) {
-				System.out.printf("%.2f [%.2fmin] complete...", (float)bytesRead / totalBytes, (startTime - System.currentTimeMillis()) / 6000.f);
+				System.out.printf("%.2f%% [%.2fmin] complete...\n", ((float)bytesRead / totalBytes) * 100, (System.currentTimeMillis() - startTime) / 60000.f);
 				percentage += percentageIncrement;
 			}
 			
@@ -312,39 +313,5 @@ public class WordMapGenerator {
 		}
 		
 		System.out.println("Generation complete.");
-	}
-	
-	
-	public void mergePartials(String sourceFile, String destFile) {
-		Path sourcePath = Paths.get(subDir.toString(), sourceFile);
-		Path destPath = Paths.get(subDir.toString(), destFile);
-		if (Files.notExists(sourcePath) || Files.notExists(destPath)) {
-			System.out.println("Couldn't merge partials; One or more of the files doesn't exist.");
-			return;
-		}
-		
-		Scanner reader = null;
-		try {
-			reader = new Scanner(sourcePath.toFile());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		if (reader != null) {
-			int token;
-			while (reader.hasNextInt()) {
-				token = reader.nextInt();
-				if (!fileContains(destPath, token)) {
-					writeInt(destPath, token);
-				}
-			}
-			reader.close();
-		}
-		
-		try {
-			Files.delete(sourcePath);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 }
