@@ -5,15 +5,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 
-
-/* To-do
- * Sometimes old words show up again for some reason
- * begWord doesn't work as intended because it treats the middle of the box as the end
- * Keep track of characters typed by user to compare against generated words (for error tracking)
- * Figure out how I wanna change the font color and stuff when a character is typed incorrectly
- * 		(perhaps store a bit along with each display character and write them all individually)
- */
-
 public class WordBox {
 	
 	protected static final Color
