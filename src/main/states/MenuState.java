@@ -1,6 +1,5 @@
 package main.states;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -14,13 +13,14 @@ public class MenuState extends AppState {
 	
 	
 	public MenuState() {
-		wordBox = new WordBox("<Press any key to start>", Color.WHITE);
+		wordBox = new WordBox(App.instance().getWidth() / 2, App.instance().getHeight() / 2, 40, "<Press any key to start>");
+		wordBox.setCursorPos(-1);
 	}
 	
 
 	@Override
 	public void render(Graphics2D g) {
-		g.setColor(SONIC_SILVER);
+		g.setColor(DEFAULT_BG_COLOR);
 		g.fillRect(0, 0, App.instance().getWidth(), App.instance().getHeight());
 		
 		wordBox.render(g);

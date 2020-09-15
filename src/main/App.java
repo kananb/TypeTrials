@@ -29,16 +29,10 @@ public class App {
 		display = new Display(1280, 720, "Type Trial");
 		mouseListener = new MouseEventListener();
 		keyListener = new KeyEventListener();
-		display.getCanvas().addMouseListener(mouseListener);
-		display.getCanvas().addMouseMotionListener(mouseListener);
-		display.getCanvas().addMouseWheelListener(mouseListener);
-		display.getCanvas().addKeyListener(keyListener);
 		
 		if (display.getCanvas().getBufferStrategy() == null) display.getCanvas().createBufferStrategy(3);
 		bs = display.getCanvas().getBufferStrategy();
 		g = (Graphics2D)bs.getDrawGraphics();
-		
-		state = new MenuState();
 	}
 	public static App instance() {
 		if (instance == null) instance = new App();
@@ -47,6 +41,12 @@ public class App {
 	
 	public void run() {
 		running = true;
+		
+		state = new MenuState();
+		display.getCanvas().addMouseListener(mouseListener);
+		display.getCanvas().addMouseMotionListener(mouseListener);
+		display.getCanvas().addMouseWheelListener(mouseListener);
+		display.getCanvas().addKeyListener(keyListener);
 		
 		while (running) {
 			g.clearRect(0, 0, display.getWidth(), display.getHeight());

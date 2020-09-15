@@ -8,6 +8,30 @@ import java.nio.ByteBuffer;
 
 public class WordGenerator {
 	
+	public static void TestSentenceGeneration() {
+		WordGenerator gen = WordGenerator.instance();
+		
+		int curWord = 0;
+		String nextWord = "";
+		boolean capitalize = true;
+		for (int i = 0; i < 20; ++i) {
+			System.out.print(i + 1 + ".");
+			while (!nextWord.contentEquals(".")) {
+				nextWord = gen.getWord((curWord = gen.getNextWord(curWord)));
+				if (capitalize || (nextWord.length() > 1 && nextWord.charAt(0) == 'i' && nextWord.charAt(1) == '\'')) {
+					nextWord = Character.toUpperCase(nextWord.charAt(0)) + nextWord.substring(1);
+				}
+				else if (nextWord.contentEquals("i")) nextWord = "I";
+				
+				capitalize = nextWord.equals(".");
+				System.out.print(((nextWord.equals(".") || nextWord.equals(",")) ? "" : " ") + nextWord);
+			}
+			System.out.println();
+			nextWord = "";
+		}
+	}
+	
+	
 	private static WordGenerator instance = null;
 	private static final File WORD_FILE = new File("cdata.wmp");
 	

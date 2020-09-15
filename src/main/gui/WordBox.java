@@ -5,48 +5,163 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 
-import main.App;
+
+/* To-do
+ * Sometimes old words show up again for some reason
+ * begWord doesn't work as intended because it treats the middle of the box as the end
+ * Keep track of characters typed by user to compare against generated words (for error tracking)
+ * Figure out how I wanna change the font color and stuff when a character is typed incorrectly
+ * 		(perhaps store a bit along with each display character and write them all individually)
+ */
 
 public class WordBox {
 	
-	protected static Font font = new Font("Courier", Font.BOLD, 40);
-	protected static Color frameColor = new Color(100, 100, 100);
-	protected static Color backgroundColor = new Color(180, 180, 180);
+	protected static final Color
+		DEFAULT_FONT_COLOR = new Color(70, 70, 70),
+		DEFAULT_BG_COLOR = new Color(0, 0, 0, 0);
+	private static final Color
+		CURSOR_COLOR = new Color(250, 250, 250),
+		FRAME_COLOR = new Color(180, 180, 180),
+		BG_COLOR = new Color(220, 220, 220);
+	
+	private static final int frameSize = 40;
+	private static final int padding = 20;
 	
 	
+	private int x, y;
+	private Font font;
+	
+	protected char[] displayChars;
+	protected Color[][] displayColors;
 	protected int displayLength;
-	protected StringBuilder displayString;
 	
-	protected Color fontColor;
+	protected int cursorPos;
 	
 	
-	public WordBox(int displayLength, Color fontColor) {
+	public WordBox(int centerX, int centerY, int fontSize, int displayLength) {
+		x = centerX;
+		y = centerY;
+		font = new Font("Courier", Font.BOLD, fontSize);
 		this.displayLength = displayLength;
-		displayString = new StringBuilder(displayLength);
-		this.fontColor = fontColor;
+		if (this.displayLength < 1) displayLength = 1;
+		
+		displayChars = new char[this.displayLength];
+		displayColors = new Color[this.displayLength][2];
+		for (int i = 0; i < displayColors.length; ++i) {
+			displayColors[i][0] = DEFAULT_FONT_COLOR;
+			displayColors[i][1] = DEFAULT_BG_COLOR;
+		}
+		
+		cursorPos = 0;
 	}
-	public WordBox(String displayString, Color fontColor) {
-		displayLength = displayString.length();
-		this.displayString = new StringBuilder(displayLength);
-		this.displayString.append(displayString);
-		this.fontColor = fontColor;
+	
+	public WordBox(int centerX, int centerY, int fontSize, String displayText) {
+		x = centerX;
+		y = centerY;
+		font = new Font("Courier", Font.BOLD, fontSize);
+		this.displayLength = displayText.length();
+		if (this.displayLength < 1) displayLength = 1;
+		
+		displayChars = new char[displayLength];
+		displayColors = new Color[displayLength][2];
+		for (int i = 0; i < this.displayLength; ++i) {
+			displayChars[i] = displayText.charAt(i);
+			displayColors[i][0] = DEFAULT_FONT_COLOR;
+			displayColors[i][1] = DEFAULT_BG_COLOR;
+		}
+		
+		cursorPos = displayText.length();
 	}
 	
 	public void render(Graphics2D g) {
 		FontMetrics metric = g.getFontMetrics(font);
-		int x = App.instance().getWidth() / 2 - metric.stringWidth(displayString.toString()) / 2,
-			y = App.instance().getHeight() / 2,
-			width = metric.stringWidth(displayString.toString()),
-			height = metric.getHeight();
-		int padding = 20;
+		int charWidth = metric.stringWidth(" "),
+			width = charWidth * displayLength,
+			height = metric.getHeight(),
+			adjustX = x - charWidth * displayLength / 2,
+			adjustY = y - height / 2;
 		
-		g.setColor(frameColor);
-		g.fillRect(x - padding * 2, y - height + metric.getDescent() - padding * 2, width + padding * 4, height + padding * 4);
-		g.setColor(backgroundColor);
-		g.fillRect(x - padding, y - height + metric.getDescent() - padding, width + padding * 2, height + padding * 2);
+		g.setColor(FRAME_COLOR);
+		g.fillRect(adjustX - frameSize, adjustY - height + metric.getDescent() - frameSize, width + frameSize * 2, height + frameSize * 2);
+		g.setColor(BG_COLOR);
+		g.fillRect(adjustX - padding, adjustY - height + metric.getDescent() - padding, width + padding * 2, height + padding * 2);
+		if (cursorPos > -1) {
+			g.setColor(CURSOR_COLOR);
+			g.fillRect(adjustX + charWidth * cursorPos, adjustY - height + metric.getDescent(), charWidth, height);
+		}
 		
-		g.setColor(fontColor);
 		g.setFont(font);
-		g.drawString(displayString.toString(), x, y);
+		for (int i = 0; i < displayLength; ++i) {
+			g.setColor(displayColors[i][1]);
+			g.fillRect(adjustX, adjustY - height + metric.getDescent(), charWidth, height);
+			g.setColor(displayColors[i][0]);
+			g.drawString(displayChars[i] + "", adjustX, adjustY);
+			adjustX += charWidth;
+		}
+	}
+	
+	public int getX() {
+		return x;
+	}
+	public void setX(int x) {
+		this.x = x;
+	}
+	
+	public int getY() {
+		return y;
+	}
+	public void setY(int y) {
+		this.y = y;
+	}
+	
+	public int getFontSize() {
+		return font.getSize();
+	}
+	public void setFontSize(int fontSize) {
+		font = new Font(font.getFontName(), font.getStyle(), fontSize);
+	}
+	
+	public String getText() {
+		return new String(displayChars);
+	}
+	public void setText(String displayText) {
+		for (int i = 0; i < displayText.length(); ++i) {
+			displayChars[i] = displayText.charAt(i);
+		}
+	}
+	
+	public Color getCharFontColor(int index) {
+		return displayColors[index][0];
+	}
+	public void setCharFontColor(int index, Color color) {
+		displayColors[index][0] = color;
+	}
+	
+	public Color getCharFontBackground(int index) {
+		return displayColors[index][1];
+	}
+	public void setCharFontColorBackground(int index, Color color) {
+		displayColors[index][1] = color;
+	}
+	
+	public Color[][] getDisplayColors() {
+		return displayColors;
+	}
+	public void setDisplayColors(Color[][] displayColors) {
+		if (displayColors.length >= displayLength && displayColors[0].length == 2) {
+			this.displayColors = displayColors;
+		}
+		
+	}
+	
+	public int getCursorPos() {
+		return cursorPos;
+	}
+	public void setCursorPos(int cursorPos) {
+		this.cursorPos = cursorPos;
+	}
+	
+	public int getHeight() {
+		return font.getSize() + frameSize * 2;
 	}
 }

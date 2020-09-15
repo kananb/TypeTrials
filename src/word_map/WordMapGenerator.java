@@ -20,14 +20,14 @@ public class WordMapGenerator {
 	
 	
 	public static void main(String[] args) {
-		String[] inputFiles = {"the_bible.txt"};
+		String[] inputFiles = {"lorax.txt", "horton.txt", "cat_hat.txt"};
 		WordMapGenerator mapGen = new WordMapGenerator("c:/users/kanan/desktop/wm/word_map", inputFiles, "c:/users/kanan/desktop/wm/inputs");
 		startTime = System.currentTimeMillis();
 		mapGen.generatePartialFiles();
 		mapGen.generateCondensedFile();
 		endTime = System.currentTimeMillis();
 		
-		System.out.printf("\nTotal Elapsed Time: %.2fs", (endTime - startTime) / 1000.f);
+		System.out.printf("\nTotal Elapsed Time: %.2fmin [%.2fs]", (endTime - startTime) / 60000.f, (endTime - startTime) / 1000.f);
 	}
 	
 	
@@ -83,6 +83,7 @@ public class WordMapGenerator {
 				}
 				
 				if (curChar == '!' || curChar == '?') curChar = '.';
+				// else if (curChar == '\n') curChar = '.';
 				else if (Character.isWhitespace(curChar)) {
 					if (lastChar == ' ') continue;
 					if (fis.read() != '\'') fis.skip(-1);
@@ -207,8 +208,10 @@ public class WordMapGenerator {
 			}
 			if (!curWord.isEmpty()) {
 				if (!wordList.containsKey(curWord)) wordList.put(curWord, wordList.size());
-				if (lastWord != null && !(lastWord.equals(".") && curWord.equals(",")) && !fileContains(lastFile, wordList.get(curWord))) {
-					writeInt(lastFile, wordList.get(curWord));
+				if (lastWord != null && !(lastWord.contentEquals(".") && curWord.contentEquals(",")) && !(lastWord.contentEquals(",") && curWord.contentEquals("."))) {
+					if (!lastWord.contentEquals(curWord) && !fileContains(lastFile, wordList.get(curWord))) {
+						writeInt(lastFile, wordList.get(curWord));
+					}
 				}
 				lastWord = curWord;
 			}

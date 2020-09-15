@@ -7,11 +7,7 @@ import java.awt.event.MouseEvent;
 
 public abstract class AppState {
 	
-	protected static final Color LAVENDER_BLUE = new Color(0xBBBDF6);
-	protected static final Color BLUE_BELL = new Color(0x9893DA);
-	protected static final Color RYTHM_BLUE = new Color(0x797A9E);
-	protected static final Color SONIC_SILVER = new Color(0x72727E);
-	protected static final Color DIM_GRAY = new Color(0x625F63);
+	protected static final Color DEFAULT_BG_COLOR = new Color(60, 60, 60);
 	
 	
 	// public abstract void update();
