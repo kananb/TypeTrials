@@ -1,13 +1,15 @@
 package main;
 
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferStrategy;
 
 import main.gui.Display;
 import main.listeners.KeyEventListener;
 import main.listeners.MouseEventListener;
-import main.states.MenuState;
 import main.states.AppState;
+import main.states.TrialState;
 
 public class App {
 	
@@ -42,7 +44,7 @@ public class App {
 	public void run() {
 		running = true;
 		
-		state = new MenuState();
+		state = new TrialState();
 		display.getCanvas().addMouseListener(mouseListener);
 		display.getCanvas().addMouseMotionListener(mouseListener);
 		display.getCanvas().addMouseWheelListener(mouseListener);
@@ -71,5 +73,9 @@ public class App {
 	}
 	public int getHeight() {
 		return display.getHeight();
+	}
+	
+	public FontMetrics getFontMetrics(Font font) {
+		return display.getCanvas().getGraphics().getFontMetrics(font);
 	}
 }

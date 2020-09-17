@@ -1,6 +1,7 @@
 package main.gui;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import main.WordGenerator;
@@ -21,8 +22,8 @@ public class EntryWordBox extends WordBox {
 	private boolean capitalize;
 	
 	
-	public EntryWordBox(int centerX, int centerY, int fontSize, int displayLength) {
-		super(centerX, centerY, fontSize, displayLength);
+	public EntryWordBox(Rectangle dimensions, int fontSize) {
+		super(dimensions, fontSize);
 		
 		generatedText = new StringBuilder(128);
 		charStates = new ArrayList<Boolean>(128);
@@ -36,8 +37,8 @@ public class EntryWordBox extends WordBox {
 		generateDisplayData();
 	}
 	
-	public EntryWordBox(int centerX, int centerY, int fontSize, String displayText) {
-		super(centerX, centerY, fontSize, displayText);
+	public EntryWordBox(Rectangle dimensions, int fontSize, String displayText) {
+		super(dimensions, fontSize, displayText);
 
 		curWord = 0;
 		capitalize = true;

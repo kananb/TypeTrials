@@ -1,6 +1,7 @@
 package main.states;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
@@ -13,7 +14,9 @@ public class MenuState extends AppState {
 	
 	
 	public MenuState() {
-		wordBox = new WordBox(App.instance().getWidth() / 2, App.instance().getHeight() / 2, 40, "<Press any key to start>");
+		int appWidth = App.instance().getWidth(), appHeight = App.instance().getHeight();
+		Rectangle coords = new Rectangle(appWidth / 2 - appWidth * 5 / 16, appHeight / 2 - 80, appWidth * 5 / 8, 160);
+		wordBox = new WordBox(coords, 40, "<Press any key to start>");
 		wordBox.setCursorPos(-1);
 	}
 	

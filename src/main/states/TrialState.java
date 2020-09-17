@@ -1,28 +1,23 @@
 package main.states;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import main.App;
 import main.gui.EntryWordBox;
-import main.gui.WordBox;
 
 public class TrialState extends AppState {
 	
 	private EntryWordBox entryWordBox;
-	private WordBox altWordBox1, altWordBox2;
 	private long start, end;
 	
 	public TrialState() {
-		entryWordBox = new EntryWordBox(App.instance().getWidth() / 2, App.instance().getHeight() / 5 * 2, 30, 55);
-		
-		altWordBox1 = new WordBox(entryWordBox.getX(), App.instance().getHeight() / 3 * 2, 20, 55);
-		altWordBox2 = new WordBox(entryWordBox.getX(), altWordBox1.getY() + altWordBox1.getHeight(), 20, 55);
-		altWordBox1.setText(entryWordBox.getText());
-		altWordBox2.setText(entryWordBox.getText());
-		altWordBox1.setCursorPos(altWordBox1.getText().length() / 2);
-		altWordBox2.setCursorPos(altWordBox2.getText().length() / 2);
+		int appWidth = App.instance().getWidth(), appHeight = App.instance().getHeight();
+		int width = appWidth * 3 / 4, height = 120, x = appWidth / 2 - width / 2, y = appHeight / 3 - height / 2;
+		entryWordBox = new EntryWordBox(new Rectangle(x, y, width, height), 40);
+		entryWordBox.setCursorPos(entryWordBox.getText().length() / 2);
 		
 		start = System.nanoTime();
 	}
@@ -34,8 +29,6 @@ public class TrialState extends AppState {
 		g.fillRect(0, 0, App.instance().getWidth(), App.instance().getHeight());
 		
 		entryWordBox.render(g);
-		altWordBox1.render(g);
-		altWordBox2.render(g);
 	}
 
 	@Override
@@ -62,8 +55,5 @@ public class TrialState extends AppState {
 				App.instance().setState(new MenuState());
 			}
 		}
-		
-		altWordBox1.setText(entryWordBox.getText());
-		altWordBox1.setDisplayColors(entryWordBox.getDisplayColors());
 	}
 }

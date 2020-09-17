@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+
+import main.App;
 
 public class WordBox {
 	
@@ -15,12 +18,15 @@ public class WordBox {
 		FRAME_COLOR = new Color(180, 180, 180),
 		BG_COLOR = new Color(220, 220, 220);
 	
-	private static final int frameSize = 40;
-	private static final int padding = 20;
+	private static final float framePercentage = 0.35f;
+	private static final float paddingPercentage = framePercentage / 2;
 	
 	
-	private int x, y;
+	private Rectangle dimensions;
 	private Font font;
+	
+	private FontMetrics fontMetrics;
+	private int charWidth;
 	
 	protected char[] displayChars;
 	protected Color[][] displayColors;
@@ -29,12 +35,13 @@ public class WordBox {
 	protected int cursorPos;
 	
 	
-	public WordBox(int centerX, int centerY, int fontSize, int displayLength) {
-		x = centerX;
-		y = centerY;
+	public WordBox(Rectangle dimensions, int fontSize) {
+		this.dimensions = dimensions;
 		font = new Font("Courier", Font.BOLD, fontSize);
-		this.displayLength = displayLength;
-		if (this.displayLength < 1) displayLength = 1;
+		fontMetrics = App.instance().getFontMetrics(font);
+		charWidth = fontMetrics.stringWidth(" ");
+		
+		this.displayLength = (int )(dimensions.getWidth() - dimensions.getHeight() * framePercentage - dimensions.getHeight() * paddingPercentage) / fontMetrics.stringWidth(" ");
 		
 		displayChars = new char[this.displayLength];
 		displayColors = new Color[this.displayLength][2];
@@ -46,17 +53,19 @@ public class WordBox {
 		cursorPos = 0;
 	}
 	
-	public WordBox(int centerX, int centerY, int fontSize, String displayText) {
-		x = centerX;
-		y = centerY;
+	public WordBox(Rectangle dimensions, int fontSize, String displayText) {
+		this.dimensions = dimensions;
 		font = new Font("Courier", Font.BOLD, fontSize);
-		this.displayLength = displayText.length();
-		if (this.displayLength < 1) displayLength = 1;
+		fontMetrics = App.instance().getFontMetrics(font);
+		charWidth = fontMetrics.stringWidth(" ");
+		
+		this.displayLength = (int )(dimensions.getWidth() - dimensions.getHeight() * framePercentage - dimensions.getHeight() * paddingPercentage) / fontMetrics.stringWidth(" ");
+		if (displayLength > displayText.length()) displayLength = displayText.length();
 		
 		displayChars = new char[displayLength];
 		displayColors = new Color[displayLength][2];
+		setText(displayText);
 		for (int i = 0; i < this.displayLength; ++i) {
-			displayChars[i] = displayText.charAt(i);
 			displayColors[i][0] = DEFAULT_FONT_COLOR;
 			displayColors[i][1] = DEFAULT_BG_COLOR;
 		}
@@ -65,74 +74,55 @@ public class WordBox {
 	}
 	
 	public void render(Graphics2D g) {
-		FontMetrics metric = g.getFontMetrics(font);
-		int charWidth = metric.stringWidth(" "),
-			width = charWidth * displayLength,
-			height = metric.getHeight(),
-			adjustX = x - charWidth * displayLength / 2,
-			adjustY = y - height / 2;
-		
 		g.setColor(FRAME_COLOR);
-		g.fillRect(adjustX - frameSize, adjustY - height + metric.getDescent() - frameSize, width + frameSize * 2, height + frameSize * 2);
+		g.fillRect((int)dimensions.getX(), (int)dimensions.getY(), (int)dimensions.getWidth(), (int)dimensions.getHeight());
+		
+		int bgx = (int)(dimensions.getX() + dimensions.getHeight() * framePercentage / 2),
+			bgy = (int)(dimensions.getY() + dimensions.getHeight() * framePercentage / 2),
+			bgwidth = (int)(dimensions.getWidth() - dimensions.getHeight() * framePercentage),
+			bgheight = (int)(dimensions.getHeight() - dimensions.getHeight() * framePercentage);
 		g.setColor(BG_COLOR);
-		g.fillRect(adjustX - padding, adjustY - height + metric.getDescent() - padding, width + padding * 2, height + padding * 2);
+		g.fillRect(bgx, bgy, bgwidth, bgheight);
+		
+		int fontx = (int)(dimensions.getX() + dimensions.getWidth() / 2) - charWidth * displayLength / 2,
+			fonty = (int)(dimensions.getY() + dimensions.getHeight() / 2) - fontMetrics.getDescent() + (font.getSize() + fontMetrics.getDescent()) / 2;
 		if (cursorPos > -1) {
 			g.setColor(CURSOR_COLOR);
-			g.fillRect(adjustX + charWidth * cursorPos, adjustY - height + metric.getDescent(), charWidth, height);
+			g.fillRect(fontx + cursorPos * charWidth, fonty - fontMetrics.getHeight() + fontMetrics.getDescent(), charWidth, fontMetrics.getHeight());
 		}
 		
 		g.setFont(font);
 		for (int i = 0; i < displayLength; ++i) {
 			g.setColor(displayColors[i][1]);
-			g.fillRect(adjustX, adjustY - height + metric.getDescent(), charWidth, height);
+			g.fillRect(fontx, fonty - fontMetrics.getHeight() + fontMetrics.getDescent(), charWidth, fontMetrics.getHeight());
 			g.setColor(displayColors[i][0]);
-			g.drawString(displayChars[i] + "", adjustX, adjustY);
-			adjustX += charWidth;
+			g.drawString(displayChars[i] + "", fontx, fonty);
+			fontx += charWidth;
 		}
 	}
 	
-	public int getX() {
-		return x;
+	public Rectangle getDimensions() {
+		return dimensions;
 	}
-	public void setX(int x) {
-		this.x = x;
-	}
-	
-	public int getY() {
-		return y;
-	}
-	public void setY(int y) {
-		this.y = y;
+	public void setDimensions(Rectangle dimensions) {
+		this.dimensions = dimensions;
 	}
 	
 	public int getFontSize() {
 		return font.getSize();
-	}
-	public void setFontSize(int fontSize) {
-		font = new Font(font.getFontName(), font.getStyle(), fontSize);
 	}
 	
 	public String getText() {
 		return new String(displayChars);
 	}
 	public void setText(String displayText) {
-		for (int i = 0; i < displayText.length(); ++i) {
-			displayChars[i] = displayText.charAt(i);
+		int size = Math.max(displayLength, displayText.length());
+		
+		for (int i = 0; i < size; ++i) {
+			if (i >= displayLength) break;
+			else if (i >= displayText.length()) displayChars[i] = ' ';
+			else displayChars[i] = displayText.charAt(i);
 		}
-	}
-	
-	public Color getCharFontColor(int index) {
-		return displayColors[index][0];
-	}
-	public void setCharFontColor(int index, Color color) {
-		displayColors[index][0] = color;
-	}
-	
-	public Color getCharFontBackground(int index) {
-		return displayColors[index][1];
-	}
-	public void setCharFontColorBackground(int index, Color color) {
-		displayColors[index][1] = color;
 	}
 	
 	public Color[][] getDisplayColors() {
@@ -150,9 +140,5 @@ public class WordBox {
 	}
 	public void setCursorPos(int cursorPos) {
 		this.cursorPos = cursorPos;
-	}
-	
-	public int getHeight() {
-		return font.getSize() + frameSize * 2;
 	}
 }
