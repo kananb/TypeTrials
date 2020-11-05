@@ -1,2 +1,2 @@
 # TypeTrials
-A multiplayer, internetwork typing trainer boasting procedurally generated sentences.
+A typing trainer boasting procedurally generated sentences created using a bigram language model.
