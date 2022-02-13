@@ -41,11 +41,11 @@ The process of generating a bigram begins with parsing the text it's based on. B
 Since we're measuring the speed at which the user can type, the sentence generation must be fast to ensure that it doesn't bottleneck the user's typing speed. This introduces a new problem though. The bigram could be too large to store entirely in memory and searching through a file each time we choose the next word in a sentence is rather slow.
 
 So, when generating the bigram, each word is given a numeric ID from `[0-n)` where `n` is the number of unique words. Then, we can use that ID as an index into a file containing information about the word. The file has three sections:
-#### Indices
+#### 1. Indices
 This section is made up of `n` 36 byte blocks where each block contains a word's id, file offsets to the start/end of it's bigram mapping, and file offsets to the start/end of it's string representation. Since this section is made up of evenly sized blocks, it can be indexed using a word's numeric ID, letting us lookup words in constant time.
-#### Bigram mappings
+#### 2. Bigram mappings
 This section contains the bigram mapping information. It is made up of `n` sequences of word ID's whose boundaries are specified by the file offsets found in the indices section.
-#### Words
+#### 3. Words
 This section holds the ascii text of each word. Since, using this file structure, we mainly operate using word IDs we need a section to allow us to convert the word ID into text to display to the user. A word's string can be found by referring to the file offsets available in the indices section.
 
 Using this structure, given a word ID we can quickly and easily find what ascii text it corresponds to and which words can come after it without storing any of the bigram in memory. First, we would find the byte offset into the file where the word's index information is stored by using the expression `ID*36`. Then, we can parse the block and extract the offsets to the file containing the ascii text of the word and the offsets containing the list of mapped words. We can then read the sections of the file specified by the offsets and pick a new word ID from the read mapping to use as the next word in the sentence.
