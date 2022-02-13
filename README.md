@@ -3,7 +3,6 @@ A typing trainer boasting procedurally generated sentences created using a bigra
 ![]()
 ## Table of Contents
 * [Description](#description)
-* [Installation](#installation)
 * [How it works](#how-it-works)
 * [License](#license)
 
